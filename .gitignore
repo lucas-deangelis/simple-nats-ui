@@ -6,3 +6,10 @@ result
 # Direnv files.
 .envrc
 .direnv/
+
+# environment file where I store the github token to publish images.
+.env
+
+# Images built by Nix.
+docker-latest
+docker-versioned
