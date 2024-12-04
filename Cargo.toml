@@ -1,0 +1,10 @@
+[package]
+name = "simple-nats-ui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.0", features = ["full"] }
+async-nats = "0.33"
+axum = { version = "0.7", features = ["ws"] }
+futures = "0.3"

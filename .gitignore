@@ -1,0 +1,8 @@
+/target
+
+# Image built by Nix.
+result
+
+# Direnv files.
+.envrc
+.direnv/
