@@ -146,7 +146,8 @@
         }
 
         function connectWebSocket(filter, messagesDiv) {
-            const ws = new WebSocket(`ws://${window.location.host}/ws/${encodeURIComponent(filter)}`);
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws/${encodeURIComponent(filter)}`);
             columns.set(filter, ws);
 
             ws.onmessage = (event) => {
