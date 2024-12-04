@@ -37,7 +37,11 @@
         mkDockerImage = tag: pkgs.dockerTools.buildLayeredImage {
           name = pname;
           inherit tag;
-          contents = [ self.packages.${system}.default ];
+          contents = [ 
+            self.packages.${system}.default
+            pkgs.bashInteractive  # Add shell for debugging
+            pkgs.coreutils       # Add basic utilities
+          ];
 
           config = {
             Cmd = [ "/bin/${pname}" ];
@@ -61,6 +65,9 @@
           nativeBuildInputs = nativeBuiltInputs;
         };
 
+        # Debug version with shell
+        packages.dockerDebug = mkDockerImage "debug";
+        # Production versions without shell
         packages.docker = mkDockerImage version;
         packages.dockerLatest = mkDockerImage "latest";
 
