@@ -1,5 +1,6 @@
 {
   description = "NATS Web UI";
+  version = "0.1.2";  # the version number you want to track
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -17,69 +18,53 @@
         pkgs = import nixpkgs {
           inherit system overlays;
         };
-        
+
         rustToolchain = pkgs.rust-bin.stable.latest.default;
+        devTools = with pkgs; [ docker gh ];
+        nativeBuiltInputs = with pkgs; [ rustToolchain pkg-config ] ++ devTools;
+        version = self.version;  # export the version
 
-        devTools = with pkgs; [
-          docker
-          gh
-        ];
-
-        nativeBuiltInputs = with pkgs; [
-          rustToolchain
-          pkg-config
-        ] ++ devTools;
-
-        version = "0.1.2";
         pname = "simple-nats-ui";
 
-        # Function to create a docker image with a specific tag
         mkDockerImage = tag: pkgs.dockerTools.buildLayeredImage {
           name = pname;
           inherit tag;
           contents = [ 
             self.packages.${system}.default
-            pkgs.bashInteractive  # Add shell for debugging
-            pkgs.coreutils       # Add basic utilities
+            pkgs.bashInteractive
+            pkgs.coreutils
           ];
-
           config = {
             Cmd = [ "/bin/${pname}" ];
-            ExposedPorts = {
-              "3000/tcp" = {};
-            };
+            ExposedPorts = { "3000/tcp" = {}; };
           };
         };
-
       in
       {
         packages.default = pkgs.rustPlatform.buildRustPackage {
           inherit pname version;
           src = ./.;
-
           cargoLock = {
             lockFile = ./Cargo.lock;
             allowBuiltinFetchGit = true;
           };
-
           nativeBuildInputs = nativeBuiltInputs;
         };
 
-        # Debug version with shell
         packages.dockerDebug = mkDockerImage "debug";
-        # Production versions without shell
         packages.docker = mkDockerImage version;
         packages.dockerLatest = mkDockerImage "latest";
 
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = nativeBuiltInputs;
-          
           shellHook = ''
             if [ -e /var/run/docker.sock ]; then
               export DOCKER_HOST="unix:///var/run/docker.sock"
             fi
           '';
         };
+
+        version = version;  # make the version available as an output attribute
       }
     );
 }
