@@ -1,18 +1,42 @@
-name: Docker Image CI
+name: Build & Push Production Docker Image
 
 on:
   push:
-    branches: [ "trunk" ]
-  pull_request:
-    branches: [ "trunk" ]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-
-  build:
-
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag simple-nats-ui:$(date +%s)
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Nix with flakes
+        uses: cachix/install-nix-action@v16
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Build production docker image using flake.nix
+        run: |
+          # This builds the image derivation defined in flake.nix under the "dockerImage" attribute.
+          nix build .#docker
+          # The output is usually symlinked to "result" (a tar file containing the image).
+          ls -l result
+
+      - name: Load docker image
+        run: |
+          # Load the docker image from the tarball produced by nix build.
+          docker load -i result
+
+      - name: Tag and push image to GHCR
+        env:
+          IMAGE_TAG: latest
+          IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/simple-nats-ui
+        run: |
+          # Tag the image (assuming your dockerTools.buildImage set the image name to "simple-nats-ui")
+          docker tag simple-nats-ui ${IMAGE_NAME}:${IMAGE_TAG}
+          # Login to GHCR using your GITHUB_TOKEN (ensure the token has write:packages scope)
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+          docker push ${IMAGE_NAME}:${IMAGE_TAG}
