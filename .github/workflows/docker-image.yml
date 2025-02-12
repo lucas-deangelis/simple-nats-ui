@@ -21,7 +21,7 @@ jobs:
       - name: Build production docker image using flake.nix
         run: |
           # This builds the image derivation defined in flake.nix under the "dockerImage" attribute.
-          nix build .#docker
+          nix build .#dockerLatest
           # The output is usually symlinked to "result" (a tar file containing the image).
           ls -l result
 
