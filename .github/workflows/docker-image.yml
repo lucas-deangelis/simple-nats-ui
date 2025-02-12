@@ -38,5 +38,5 @@ jobs:
           # Tag the image (assuming your dockerTools.buildImage set the image name to "simple-nats-ui")
           docker tag simple-nats-ui ${IMAGE_NAME}:${IMAGE_TAG}
           # Login to GHCR using your GITHUB_TOKEN (ensure the token has write:packages scope)
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+          echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
           docker push ${IMAGE_NAME}:${IMAGE_TAG}
