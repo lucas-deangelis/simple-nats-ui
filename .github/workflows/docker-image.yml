@@ -8,6 +8,10 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    env:
+      # You can either hard-code the version here or later extract it dynamically.
+      IMAGE_VERSION: "0.1.2"
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/simple-nats-ui
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -18,25 +22,34 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
 
-      - name: Build production docker image using flake.nix
+      - name: Build production docker image using flake.nix (latest)
         run: |
-          # This builds the image derivation defined in flake.nix under the "dockerImage" attribute.
-          nix build .#dockerLatest
-          # The output is usually symlinked to "result" (a tar file containing the image).
-          ls -l result
+          nix build .#dockerLatest -o result_latest
+          ls -l result_latest
 
-      - name: Load docker image
+      - name: Load docker image (latest)
         run: |
-          # Load the docker image from the tarball produced by nix build.
-          docker load -i result
+          docker load -i result_latest
 
-      - name: Tag and push image to GHCR
-        env:
-          IMAGE_TAG: latest
-          IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/simple-nats-ui
+      - name: Tag and push latest image to GHCR
         run: |
-          # Tag the image (assuming your dockerTools.buildImage set the image name to "simple-nats-ui")
-          docker tag simple-nats-ui ${IMAGE_NAME}:${IMAGE_TAG}
-          # Login to GHCR using your GITHUB_TOKEN (ensure the token has write:packages scope)
+          docker tag simple-nats-ui ${IMAGE_NAME}:latest
           echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-          docker push ${IMAGE_NAME}:${IMAGE_TAG}
+          docker push ${IMAGE_NAME}:latest
+
+      # ---- Additional steps for the versioned image ----
+
+      - name: Build production docker image using flake.nix (versioned)
+        run: |
+          nix build .#docker -o result_version
+          ls -l result_version
+
+      - name: Load versioned docker image
+        run: |
+          docker load -i result_version
+
+      - name: Tag and push versioned image to GHCR
+        run: |
+          docker tag simple-nats-ui ${IMAGE_NAME}:${IMAGE_VERSION}
+          echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+          docker push ${IMAGE_NAME}:${IMAGE_VERSION}
