@@ -87,8 +87,25 @@ const INDEX_HTML: &str = r#"<!DOCTYPE html>
 </head>
 <body>
     <div class="add-column">
-        <input type="text" id="new-filter" placeholder="Enter NATS subject filter">
+        <input type="text" id="new-filter" placeholder="Enter NATS subject filter" onkeypress="if(event.key === 'Enter' && this.value.trim()) addColumn()">
         <button onclick="addColumn()">Add Column</button>
+
+        <button onclick="toggleSyntaxHelp()" style="padding: 5px 10px; background: none; border: none; color: #0066cc; text-decoration: underline; font-size: 0.9em; cursor: help;">ⓘ Filter syntax</button>
+        <div id="syntax-help" style="display: none; position: absolute; background: white; border: 1px solid #ccc; padding: 15px; border-radius: 0px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 10px; max-width: 300px;">
+            <h4 style="margin-top: 0">NATS Subject Syntax:</h4>
+            <ul style="margin: 0; padding-left: 20px;">
+                <li><code>></code> - Matches all subjects</li>
+                <li><code>foo.*</code> - Matches foo.bar, foo.baz</li>
+                <li><code>foo.></code> - Matches foo.bar, foo.bar.baz</li>
+                <li><code>*.bar.*</code> - Matches foo.bar.baz, other.bar.foo</li>
+            </ul>
+        </div>
+        <script>
+        function toggleSyntaxHelp() {
+            const help = document.getElementById('syntax-help');
+            help.style.display = help.style.display === 'none' ? 'block' : 'none';
+        }
+        </script>
     </div>
     
     <div class="columns-container" id="columns">
