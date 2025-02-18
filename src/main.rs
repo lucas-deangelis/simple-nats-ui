@@ -5,9 +5,9 @@ use axum::{
     routing::get,
     Router,
 };
-use futures::{stream::StreamExt, SinkExt};
+use futures::{stream::StreamExt, FutureExt, SinkExt};
 use std::sync::Arc;
-use tokio::net::TcpListener;
+use tokio::{net::TcpListener, signal};
 use tokio::sync::broadcast;
 
 const INDEX_HTML: &str = r#"<!DOCTYPE html>
@@ -255,9 +255,38 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Starting web server on port 3000");
 
     // Start serving
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
 
     Ok(())
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+        println!("Received Ctrl+C signal");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install SIGTERM handler")
+            .recv()
+            .await;
+        println!("Received SIGTERM signal");
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+    println!("Shutting down...");
 }
 
 async fn index_handler() -> impl IntoResponse {

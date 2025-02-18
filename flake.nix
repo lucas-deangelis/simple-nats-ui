@@ -30,7 +30,7 @@
           pkg-config
         ] ++ devTools;
 
-        version = "0.1.3";
+        version = "0.1.4";
         pname = "simple-nats-ui";
 
         # Function to create a docker image with a specific tag
