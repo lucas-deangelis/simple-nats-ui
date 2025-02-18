@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # You can either hard-code the version here or later extract it dynamically.
-      IMAGE_VERSION: "0.1.2"
+      IMAGE_VERSION: "0.1.3"
       IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/simple-nats-ui
     steps:
       - name: Checkout repository
