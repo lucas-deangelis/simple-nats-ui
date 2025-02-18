@@ -21,12 +21,13 @@ const INDEX_HTML: &str = r#"<!DOCTYPE html>
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
             padding: 20px;
+            padding-top: 0;
             height: 100vh;
             overflow-x: auto;
         }
         .columns-container {
             display: flex;
-            gap: 20px;
+            gap: 10px;
             height: calc(100vh - 40px);
             min-width: min-content;
         }
@@ -61,7 +62,7 @@ const INDEX_HTML: &str = r#"<!DOCTYPE html>
         }
         .message {
             padding: 5px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #ccc;
             word-break: break-word;
         }
         button {
@@ -71,10 +72,8 @@ const INDEX_HTML: &str = r#"<!DOCTYPE html>
         .add-column {
             position: sticky;
             left: 20px;
-            top: 20px;
             z-index: 1000;
             background: white;
-            border: 2px dashed #ccc;
             padding: 10px;
             border-radius: 4px;
         }
